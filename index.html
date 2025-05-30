@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -112,11 +110,49 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        /* Styles for custom message box */
+        .message-box-overlay {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+
+        .message-box-content {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+            max-width: 24rem;
+            width: 100%;
+            text-align: center;
+        }
+
+        .message-box-text {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600; /* font-semibold */
+            margin-bottom: 1rem;
+        }
+
+        .message-box-close-btn {
+            background-color: #ef4444; /* bg-red-500 */
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem; /* rounded-md */
+            transition: background-color 0.15s ease-in-out;
+        }
+
+        .message-box-close-btn:hover {
+            background-color: #dc2626; /* hover:bg-red-600 */
+        }
     </style>
 </head>
 <body>
     <div class="min-h-screen flex flex-col">
-        <!-- Header -->
         <header class="bg-white shadow-md py-6">
             <div class="container mx-auto px-4">
                 <h1 class="text-3xl font-bold text-red-600 text-center">
@@ -131,9 +167,7 @@
             </div>
         </header>
 
-        <!-- Main Content -->
         <main class="flex-grow container mx-auto px-4 py-8">
-            <!-- Tabs -->
             <div class="flex flex-wrap border-b border-gray-200 mb-6">
                 <button id="tab1" class="tab active px-4 py-2 mr-2 mb-2" onclick="switchTab(1)">
                     📈 สถิติรายวัน
@@ -146,17 +180,13 @@
                 </button>
             </div>
 
-            <!-- Tab Content -->
             <div id="tabContent1" class="tab-content active">
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h3 class="text-xl font-semibold text-red-600 mb-4">
                         📅 เลือกวันที่เพื่อดูสถิติ
                     </h3>
                     <div class="mb-6">
-                        <select id="dateSelector" class="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
-                            <option value="">กรุณาเลือกวันที่</option>
-                            <!-- จะถูกเติมด้วย JavaScript -->
-                        </select>
+                        <input type="date" id="dateSelector" class="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
                     </div>
                     
                     <div id="dailyStatsLoader" class="loader"></div>
@@ -215,7 +245,6 @@
                             </div>
                         </div>
                         
-                        <!-- Admin Access Section -->
                         <div class="mt-8 pt-6 border-t border-gray-200">
                             <h4 class="text-lg font-medium text-gray-800 mb-3">
                                 🔐 ตรวจสอบรายชื่อบุคลากรตามสถานะ
@@ -243,8 +272,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody id="specialStatusTableBody">
-                                                <!-- จะถูกเติมด้วย JavaScript -->
-                                            </tbody>
+                                                </tbody>
                                         </table>
                                     </div>
                                 </div>
@@ -277,8 +305,7 @@
                                 </tr>
                             </thead>
                             <tbody id="dailyTableBody">
-                                <!-- จะถูกเติมด้วย JavaScript -->
-                            </tbody>
+                                </tbody>
                         </table>
                     </div>
                 </div>
@@ -317,7 +344,6 @@
                             </div>
                         </div>
                         
-                        <!-- Date Range Selection -->
                         <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
                             <h4 class="text-lg font-medium text-gray-800 mb-3">
                                 📅 เลือกช่วงวันที่ต้องการดูข้อมูล
@@ -325,17 +351,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
-                                    <select id="startDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="">กรุณาเลือกวันที่เริ่มต้น</option>
-                                        <!-- จะถูกเติมด้วย JavaScript -->
-                                    </select>
+                                    <input type="date" id="startDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
-                                    <select id="endDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="">กรุณาเลือกวันที่สิ้นสุด</option>
-                                        <!-- จะถูกเติมด้วย JavaScript -->
-                                    </select>
+                                    <input type="date" id="endDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
                                 </div>
                             </div>
                             <button id="searchDateRangeBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors">
@@ -363,8 +383,7 @@
                                     </tr>
                                 </thead>
                                 <tbody id="staffTableBody">
-                                    <!-- จะถูกเติมด้วย JavaScript -->
-                                </tbody>
+                                    </tbody>
                             </table>
                         </div>
                         
@@ -404,7 +423,6 @@
             </div>
         </main>
 
-        <!-- Footer -->
         <footer class="bg-white py-6 border-t border-gray-200">
             <div class="container mx-auto px-4 text-center text-gray-600">
                 <p>👨‍💻 จัดทำโดย นายจักรพงศ์ จันทวงศ์ โรงเรียนหางดงรัฐราษฎร์อุปถัมภ์</p>
@@ -414,9 +432,9 @@
 
     <script>
         // Global variables
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxpt5-n4GECysZPmFdIEGuzB4nX4RQ6XQ8LfPmE20Qg3bJelu7Vx18hgA3LmCN4rnBJyw/exec';
-        const SHEET_ID = '1YQrbZhMC9w0ZsajUK4y617EqtZgEut62D5y-sG63ciU';
-        const SHEET_NAME = '102';
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1klz1YOuaUHIIvH1pLc5YnJIGMftoHw5IVdcbhT4Ec2uBxFlgiW_GtM4mCcp8X7kbxQ/exec';
+        const SHEET_ID = '1VIQGoMbpIwLAwhX3yv6t_4ybi7VqY4Ktbf-3ot0Bm-A';
+        const SHEET_NAME = '102'; // Assuming this sheet name is correct based on the original code
         const ADMIN_CODE = '112233'; // รหัสผ่านสำหรับดูรายชื่อบุคลากรพิเศษ
         
         let allData = [];
@@ -443,6 +461,21 @@
             'rgba(239, 68, 68, 0.8)',   // ขาด - red
             'rgba(249, 115, 22, 0.8)'   // ไปราชการ - orange
         ];
+
+        // Helper function to normalize date to YYYY-MM-DD string
+        // This ensures consistent date format for comparisons, regardless of input variations.
+        function normalizeDateString(dateInput) {
+            if (!dateInput) return null;
+            const date = new Date(dateInput);
+            if (isNaN(date.getTime())) {
+                return null; // Return null for invalid dates
+            }
+            // Get YYYY-MM-DD in local time
+            const year = date.getFullYear();
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
         
         // Initialize the application
         document.addEventListener('DOMContentLoaded', function() {
@@ -491,16 +524,18 @@
                 if (data && data.length > 0) {
                     allData = data;
                     
-                    // Extract all dates
+                    // Extract all dates and normalize their format
                     extractAllDates();
                     
-                    // Process the data
-                    populateDateSelector();
+                    // Set min/max for date pickers and set default values
+                    setDatePickerMinMax();
+
+                    // Populate daily table (this still uses allDates)
                     populateDailyTable();
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง');
+                displayMessageBox('เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาลองใหม่อีกครั้ง', 'error');
             }
         }
         
@@ -511,11 +546,12 @@
             // Extract unique dates from the data (starting from column 3)
             if (allData.length > 0 && allData[0].length > 2) {
                 for (let i = 2; i < allData[0].length; i++) {
-                    if (allData[0][i]) {
+                    const normalizedDate = normalizeDateString(allData[0][i]);
+                    if (normalizedDate) {
                         allDates.push({
-                            date: allData[0][i],
+                            date: normalizedDate, // Store normalized YYYY-MM-DD string
                             columnIndex: i,
-                            formattedDate: formatDate(allData[0][i])
+                            formattedDate: formatDate(normalizedDate) // For display
                         });
                     }
                 }
@@ -524,51 +560,37 @@
             // Sort dates in descending order (newest first)
             allDates.sort((a, b) => new Date(b.date) - new Date(a.date));
         }
-        
-        // Populate date selector dropdown
-        function populateDateSelector() {
-            const dateSelector = document.getElementById('dateSelector');
-            dateSelector.innerHTML = '<option value="">กรุณาเลือกวันที่</option>';
-            
-            // Add dates to the selector
-            allDates.forEach(dateObj => {
-                const option = document.createElement('option');
-                option.value = dateObj.date;
-                option.textContent = dateObj.formattedDate;
-                dateSelector.appendChild(option);
-            });
-            
-            // Hide loader
+
+        // Set min/max attributes for date pickers and set default values
+        function setDatePickerMinMax() {
+            if (allDates.length > 0) {
+                // The dates in allDates are already sorted from newest to oldest
+                const newestDate = allDates[0].date; // YYYY-MM-DD
+                const oldestDate = allDates[allDates.length - 1].date; // YYYY-MM-DD
+
+                const dateSelector = document.getElementById('dateSelector');
+                dateSelector.min = oldestDate;
+                dateSelector.max = newestDate;
+                dateSelector.value = newestDate; // Set default to the newest date
+                handleDateSelection(); // Trigger initial load for the newest date
+
+                const startDateSelector = document.getElementById('startDateSelector');
+                const endDateSelector = document.getElementById('endDateSelector');
+                startDateSelector.min = oldestDate;
+                startDateSelector.max = newestDate;
+                endDateSelector.min = oldestDate;
+                endDateSelector.max = newestDate;
+                // Set default range to the newest date
+                startDateSelector.value = newestDate;
+                endDateSelector.value = newestDate;
+            }
+            // Hide loader after setting up date pickers
             document.getElementById('dailyStatsLoader').style.display = 'none';
         }
         
-        // Populate date range selectors
-        function populateDateRangeSelectors() {
-            const startDateSelector = document.getElementById('startDateSelector');
-            const endDateSelector = document.getElementById('endDateSelector');
-            
-            startDateSelector.innerHTML = '<option value="">กรุณาเลือกวันที่เริ่มต้น</option>';
-            endDateSelector.innerHTML = '<option value="">กรุณาเลือกวันที่สิ้นสุด</option>';
-            
-            // Add dates to the selectors
-            allDates.forEach(dateObj => {
-                // Start date selector
-                const startOption = document.createElement('option');
-                startOption.value = dateObj.date;
-                startOption.textContent = dateObj.formattedDate;
-                startDateSelector.appendChild(startOption);
-                
-                // End date selector
-                const endOption = document.createElement('option');
-                endOption.value = dateObj.date;
-                endOption.textContent = dateObj.formattedDate;
-                endDateSelector.appendChild(endOption);
-            });
-        }
-        
-        // Handle date selection change
+        // Handle date selection change for daily stats tab
         function handleDateSelection() {
-            const selectedDate = document.getElementById('dateSelector').value;
+            const selectedDate = document.getElementById('dateSelector').value; // Value is YYYY-MM-DD
             currentSelectedDate = selectedDate;
             
             if (selectedDate) {
@@ -594,13 +616,28 @@
             let dateColumnIndex = -1;
             
             for (let i = 2; i < allData[0].length; i++) {
-                if (allData[0][i] === selectedDate) {
+                // Compare selectedDate (YYYY-MM-DD) with the normalized date in the header row
+                if (normalizeDateString(allData[0][i]) === selectedDate) {
                     dateColumnIndex = i;
                     break;
                 }
             }
             
-            if (dateColumnIndex === -1) return;
+            if (dateColumnIndex === -1) {
+                // If date not found, clear content or show a message
+                document.getElementById('presentCount').textContent = 0;
+                document.getElementById('lateCount').textContent = 0;
+                document.getElementById('personalLeaveCount').textContent = 0;
+                document.getElementById('sickLeaveCount').textContent = 0;
+                document.getElementById('absentCount').textContent = 0;
+                document.getElementById('officialCount').textContent = 0;
+                document.getElementById('totalCount').textContent = 0;
+                if (dailyChart) {
+                    dailyChart.destroy(); // Clear chart if no data
+                }
+                displayMessageBox('ไม่พบข้อมูลสำหรับวันที่เลือก', 'info');
+                return;
+            }
             
             // Count statuses
             const statusCounts = {
@@ -695,11 +732,11 @@
                     adminContentArea.classList.remove('hidden');
                     adminContentArea.classList.add('fade-in');
                 } else {
-                    alert('กรุณาเลือกวันที่ก่อน');
+                    displayMessageBox('กรุณาเลือกวันที่ก่อน', 'warning');
                 }
             } else {
                 adminContentArea.classList.add('hidden');
-                alert('รหัสผ่านไม่ถูกต้อง');
+                displayMessageBox('รหัสผ่านไม่ถูกต้อง', 'error');
             }
         }
         
@@ -709,7 +746,7 @@
             let dateColumnIndex = -1;
             
             for (let i = 2; i < allData[0].length; i++) {
-                if (allData[0][i] === selectedDate) {
+                if (normalizeDateString(allData[0][i]) === selectedDate) {
                     dateColumnIndex = i;
                     break;
                 }
@@ -773,7 +810,7 @@
                 
                 // Process each date
                 allDates.forEach(dateObj => {
-                    const { date, columnIndex } = dateObj;
+                    const { date, columnIndex } = dateObj; // date is already normalized YYYY-MM-DD
                     
                     // Count statuses for this date
                     const statusCounts = {
@@ -825,7 +862,7 @@
             const staffId = document.getElementById('staffIdInput').value.trim();
             
             if (!staffId) {
-                alert('กรุณาระบุ ID บุคลากร');
+                displayMessageBox('กรุณาระบุ ID บุคลากร', 'warning');
                 return;
             }
             
@@ -856,8 +893,13 @@
                 document.getElementById('staffId').textContent = allData[currentStaffRowIndex][0];
                 document.getElementById('staffName').textContent = allData[currentStaffRowIndex][1];
                 
-                // Populate date range selectors
-                populateDateRangeSelectors();
+                // Ensure date range selectors are reset to the newest date for new staff search
+                const startDateSelector = document.getElementById('startDateSelector');
+                const endDateSelector = document.getElementById('endDateSelector');
+                if (allDates.length > 0) {
+                    startDateSelector.value = allDates[0].date;
+                    endDateSelector.value = allDates[0].date;
+                }
                 
                 document.getElementById('staffIdLoader').classList.add('hidden');
                 document.getElementById('staffInfoContent').classList.remove('hidden');
@@ -866,16 +908,23 @@
         
         // Search for staff data within date range
         function searchDateRange() {
-            const startDate = document.getElementById('startDateSelector').value;
-            const endDate = document.getElementById('endDateSelector').value;
+            const startDate = document.getElementById('startDateSelector').value; // Value is YYYY-MM-DD
+            const endDate = document.getElementById('endDateSelector').value;     // Value is YYYY-MM-DD
             
             if (!startDate || !endDate) {
-                alert('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด');
+                displayMessageBox('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด', 'warning');
                 return;
             }
             
             if (currentStaffRowIndex === -1) {
-                alert('กรุณาค้นหา ID บุคลากรก่อน');
+                displayMessageBox('กรุณาค้นหา ID บุคลากรก่อน', 'warning');
+                return;
+            }
+
+            // Validate date range
+            // Direct string comparison works for YYYY-MM-DD for chronological order
+            if (startDate > endDate) {
+                displayMessageBox('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุด', 'error');
                 return;
             }
             
@@ -885,18 +934,15 @@
             setTimeout(() => {
                 // Find date indices within range
                 const dateIndicesInRange = [];
-                const startDateObj = new Date(startDate);
-                const endDateObj = new Date(endDate);
                 
                 for (let i = 2; i < allData[0].length; i++) {
-                    if (allData[0][i]) {
-                        const currentDateObj = new Date(allData[0][i]);
-                        if (currentDateObj >= startDateObj && currentDateObj <= endDateObj) {
-                            dateIndicesInRange.push({
-                                date: allData[0][i],
-                                columnIndex: i
-                            });
-                        }
+                    const currentDateInSheet = normalizeDateString(allData[0][i]); // Normalize sheet date
+                    
+                    if (currentDateInSheet && currentDateInSheet >= startDate && currentDateInSheet <= endDate) {
+                        dateIndicesInRange.push({
+                            date: currentDateInSheet,
+                            columnIndex: i
+                        });
                     }
                 }
                 
@@ -979,15 +1025,57 @@
         function formatDate(dateStr) {
             try {
                 const date = new Date(dateStr);
+                // Ensure the date is valid before formatting
+                if (isNaN(date.getTime())) {
+                    return dateStr; // Return original string if invalid date
+                }
                 return date.toLocaleDateString('th-TH', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
                 });
             } catch (e) {
+                console.error("Error formatting date:", e);
                 return dateStr;
             }
         }
+
+        // Custom message box function (replaces alert())
+        function displayMessageBox(message, type = 'info') {
+            let messageBox = document.getElementById('customMessageBox');
+            if (!messageBox) {
+                messageBox = document.createElement('div');
+                messageBox.id = 'customMessageBox';
+                messageBox.className = 'message-box-overlay hidden'; // Initially hidden
+                messageBox.innerHTML = `
+                    <div class="message-box-content">
+                        <p id="messageBoxText" class="message-box-text"></p>
+                        <button id="messageBoxCloseBtn" class="message-box-close-btn">
+                            ตกลง
+                        </button>
+                    </div>
+                `;
+                document.body.appendChild(messageBox);
+                document.getElementById('messageBoxCloseBtn').addEventListener('click', () => {
+                    messageBox.classList.add('hidden');
+                });
+            }
+
+            const messageBoxText = document.getElementById('messageBoxText');
+            messageBoxText.textContent = message;
+
+            // Optional: Change color based on message type
+            messageBoxText.className = 'message-box-text'; // Reset classes
+            if (type === 'error') {
+                messageBoxText.classList.add('text-red-700');
+            } else if (type === 'warning') {
+                messageBoxText.classList.add('text-yellow-700');
+            } else {
+                messageBoxText.classList.add('text-gray-800');
+            }
+
+            messageBox.classList.remove('hidden');
+        }
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'947e5dd4478c4b59',t:'MTc0ODYwOTUyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
