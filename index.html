@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบสารสนเทศการมาปฏิบัติงาน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: #fff5f5;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #f56565;
+            transition: width 0.3s ease;
+        }
+
+        .tab.active::after {
+            width: 100%;
+        }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f56565;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+
+        th, td {
+            border: 1px solid #fed7d7;
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        th {
+            background-color: #fee2e2;
+            font-weight: 600;
+            color: #991b1b;
+        }
+
+        tr:nth-child(even) {
+            background-color: #fef2f2;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px; /* Tailwind's rounded-full */
+            font-size: 0.75rem; /* Tailwind's text-xs */
+            font-weight: 500; /* Tailwind's font-medium */
+        }
+        
+        /* Fade-in animation */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-red-50 min-h-screen">
+    <div class="container mx-auto p-4 md:p-8">
+        <h1 class="text-3xl font-bold text-red-700 text-center mb-8">
+            ระบบสารสนเทศการมาปฏิบัติงานของบุคลากร
+        </h1>
+
+        <div class="bg-white rounded-lg shadow-xl p-4 md:p-6 mb-8">
+            <div class="flex flex-wrap justify-center space-x-2 md:space-x-4 mb-6 border-b border-gray-200">
+                <button id="tab1" onclick="switchTab(1)" class="tab py-3 px-4 md:px-6 text-lg font-medium text-red-600 border-b-2 border-transparent hover:border-red-400 transition-colors duration-200 active">
+                    สถิติรายวัน
+                </button>
+                <button id="tab2" onclick="switchTab(2)" class="tab py-3 px-4 md:px-6 text-lg font-medium text-gray-600 hover:text-red-600 border-b-2 border-transparent hover:border-red-400 transition-colors duration-200">
+                    สถิติรวม (ทุกวัน)
+                </button>
+                <button id="tab3" onclick="switchTab(3)" class="tab py-3 px-4 md:px-6 text-lg font-medium text-gray-600 hover:text-red-600 border-b-2 border-transparent hover:border-red-400 transition-colors duration-200">
+                    สถิติรายบุคคล
+                </button>
+            </div>
+
+            <div id="tabContent1" class="tab-content active">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-xl font-semibold text-red-600 mb-4">
+                        📅 เลือกวันที่เพื่อดูสถิติ
+                    </h3>
+                    <div class="mb-6">
+                        <input type="date" id="dateSelector" class="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                    </div>
+
+                    <div id="dailyStatsLoader" class="loader"></div>
+
+                    <div id="dailyStatsContent" class="hidden">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div class="chart-container">
+                                    <canvas id="dailyChart"></canvas>
+                                </div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-800 mb-3">
+                                    สรุปสถานะประจำวัน
+                                </h4>
+                                <div class="bg-red-50 rounded-lg p-4">
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-green-500 mr-2"></span>
+                                            <span>มา: </span>
+                                            <span id="presentCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-yellow-500 mr-2"></span>
+                                            <span>สาย: </span>
+                                            <span id="lateCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-blue-500 mr-2"></span>
+                                            <span>ลากิจ: </span>
+                                            <span id="personalLeaveCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-purple-500 mr-2"></span>
+                                            <span>ลาป่วย: </span>
+                                            <span id="sickLeaveCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-red-500 mr-2"></span>
+                                            <span>ขาด: </span>
+                                            <span id="absentCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-orange-500 mr-2"></span>
+                                            <span>ไปราชการ: </span>
+                                            <span id="officialCount" class="font-semibold ml-1">0</span>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 pt-3 border-t border-red-200">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-medium">จำนวนบุคลากรทั้งหมด:</span>
+                                            <span id="totalCount" class="font-semibold text-red-600">0</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 pt-6 border-t border-gray-200">
+                            <h4 class="text-lg font-medium text-gray-800 mb-3">
+                                🔐 ตรวจสอบรายชื่อบุคลากรตามสถานะ
+                            </h4>
+                            <div class="flex flex-col md:flex-row gap-4 mb-4">
+                                <input type="password" id="adminCodeInput" placeholder="กรอกรหัสผ่านเพื่อดูรายชื่อ"
+                                    class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                                <button id="checkAdminCodeBtn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors">
+                                    ตรวจสอบ
+                                </button>
+                            </div>
+
+                            <div id="adminContentArea" class="hidden mt-4">
+                                <div class="bg-red-50 rounded-lg p-4 mb-4">
+                                    <h5 class="font-medium text-red-700 mb-2">รายชื่อบุคลากรที่ไม่ได้มาปฏิบัติงานตามปกติ</h5>
+                                    <p class="text-sm text-gray-600 mb-3">วันที่: <span id="selectedDateDisplay">-</span></p>
+
+                                    <div class="overflow-x-auto">
+                                        <table class="min-w-full">
+                                            <thead>
+                                                <tr>
+                                                    <th>ID</th>
+                                                    <th>ชื่อ-นามสกุล</th>
+                                                    <th>สถานะ</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="specialStatusTableBody">
+                                                </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabContent2" class="tab-content">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-red-600 mb-4">
+                        📊 สถิติการมาปฏิบัติงานทั้งหมด
+                    </h3>
+                    <div id="dailyTableLoader" class="loader"></div>
+                    <div id="dailyTableContent" class="hidden">
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>มา</th>
+                                        <th>สาย</th>
+                                        <th>ลากิจ</th>
+                                        <th>ลาป่วย</th>
+                                        <th>ขาด</th>
+                                        <th>ไปราชการ</th>
+                                        <th>รวมทั้งหมด</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dailyTableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabContent3" class="tab-content">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-red-600 mb-4">
+                        🔍 ค้นหาสถิติรายบุคคล
+                    </h3>
+
+                    <div class="mb-6">
+                        <div class="flex flex-col md:flex-row gap-4 mb-4">
+                            <input type="text" id="staffIdInput" placeholder="ค้นหาด้วย ID บุคลากร"
+                                class="flex-grow px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                            <button id="searchStaffIdBtn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors">
+                                ค้นหา ID
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="staffIdLoader" class="loader hidden"></div>
+
+                    <div id="staffNotFound" class="hidden bg-yellow-50 border border-yellow-200 text-yellow-800 p-4 rounded-md">
+                        ⚠️ ไม่พบข้อมูลบุคลากรตาม ID ที่ระบุ กรุณาตรวจสอบและลองใหม่อีกครั้ง
+                    </div>
+
+                    <div id="staffInfoContent" class="hidden">
+                        <div class="bg-red-50 rounded-lg p-4 mb-6">
+                            <h4 class="text-lg font-medium text-gray-800">
+                                ข้อมูลบุคลากร
+                            </h4>
+                            <div class="mt-2">
+                                <p><span class="font-medium">ID:</span> <span id="staffId"></span></p>
+                                <p><span class="font-medium">ชื่อ-นามสกุล:</span> <span id="staffName"></span></p>
+                            </div>
+                        </div>
+
+                        <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                            <h4 class="text-lg font-medium text-gray-800 mb-3">
+                                📅 เลือกช่วงวันที่ต้องการดูข้อมูล
+                            </h4>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
+                                    <input type="date" id="startDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                    <input type="date" id="endDateSelector" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                                </div>
+                            </div>
+                            <button id="searchDateRangeBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors">
+                                ค้นหาข้อมูล
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="staffStatsLoader" class="loader hidden"></div>
+
+                    <div id="staffStatsContent" class="hidden">
+                        <h4 class="text-lg font-medium text-gray-800 mb-3">
+                            ประวัติการมาปฏิบัติงาน
+                        </h4>
+                        <p class="text-sm text-gray-600 mb-3">
+                            ช่วงวันที่: <span id="dateRangeDisplay">-</span>
+                        </p>
+
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead>
+                                    <tr>
+                                        <th>วันที่</th>
+                                        <th>สถานะ</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="staffTableBody">
+                                    </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-6 bg-red-50 rounded-lg p-4">
+                            <h4 class="text-lg font-medium text-gray-800 mb-3">
+                                สรุปสถิติ
+                            </h4>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-green-600 font-medium">มา</div>
+                                    <div id="staffPresentCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-yellow-600 font-medium">สาย</div>
+                                    <div id="staffLateCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-blue-600 font-medium">ลากิจ</div>
+                                    <div id="staffPersonalLeaveCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-purple-600 font-medium">ลาป่วย</div>
+                                    <div id="staffSickLeaveCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-red-600 font-medium">ขาด</div>
+                                    <div id="staffAbsentCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-orange-600 font-medium">ไปราชการ</div>
+                                    <div id="staffOfficialCount" class="text-2xl font-bold">0</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        // ** IMPORTANT: REPLACE THIS URL WITH YOUR DEPLOYED GOOGLE APPS SCRIPT WEB APP URL **
+        const API_URL = 'https://script.google.com/macros/s/AKfycbz1klz1YOuaUHIIvH1pLc5YnJIGMftoHw5IVdcbhT4Ec2uBxFlgiW_GtM4mCcp8X7kbxQ/exec'; 
+        const SHEET_ID = '1VIQGoMbpIwLAwhX3yv6t_4ybi7VqY4Ktbf-3ot0Bm-A'; // Updated Sheet ID
+        const SHEET_NAME = '102'; // Replace with your exact Sheet Name
+        const ADMIN_CODE = '112233'; // รหัสผ่านสำหรับดูรายชื่อบุคลากรพิเศษ
+
+        // --- NEW: Data refresh interval (in milliseconds) ---
+        const REFRESH_INTERVAL = 30 * 1000; // Refresh every 30 seconds. Adjust as needed.
+                                            // 1000 = 1 second, 60000 = 1 minute
+
+        let allData = [];
+        let dailyChart = null;
+        let currentSelectedDate = null;
+        let currentStaffRowIndex = -1;
+        let allDates = []; // Stores normalized dates from sheet headers
+
+        // Status color mapping
+        const statusColors = {
+            'มา': 'bg-green-100 text-green-800',
+            'สาย': 'bg-yellow-100 text-yellow-800',
+            'ลากิจ': 'bg-blue-100 text-blue-800',
+            'ลาป่วย': 'bg-purple-100 text-purple-800',
+            'ขาด': 'bg-red-100 text-red-800',
+            'ไปราชการ': 'bg-orange-100 text-orange-800'
+        };
+
+        const chartColors = [
+            'rgba(34, 197, 94, 0.8)',  // มา - green
+            'rgba(234, 179, 8, 0.8)',   // สาย - yellow
+            'rgba(59, 130, 246, 0.8)',  // ลากิจ - blue
+            'rgba(168, 85, 247, 0.8)',  // ลาป่วย - purple
+            'rgba(239, 68, 68, 0.8)',   // ขาด - red
+            'rgba(249, 115, 22, 0.8)'   // ไปราชการ - orange
+        ];
+
+        // Helper function to normalize date strings to YYYY-MM-DD
+        function normalizeDate(dateStr) {
+            if (!dateStr) return null;
+            // Trim whitespace
+            dateStr = String(dateStr).trim();
+
+            // Check if it's already YYYY-MM-DD
+            if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                return dateStr;
+            }
+            
+            // Try to parse as DD/MM/YYYY or DD.MM.YYYY
+            let parts;
+            if (dateStr.includes('/')) {
+                parts = dateStr.split('/');
+            } else if (dateStr.includes('.')) {
+                parts = dateStr.split('.');
+            }
+
+            if (parts && parts.length === 3) {
+                const day = parts[0];
+                const month = parts[1];
+                let year = parts[2];
+
+                // Handle 2-digit year (e.g., 20 for 2020) if needed, but unlikely for full dates
+                if (year.length === 2) {
+                    year = (parseInt(year) < 50 ? '20' : '19') + year; // Basic heuristic
+                } else if (year.length === 4 && parseInt(year) > 2500) { // Assume Buddhist year (25xx)
+                    year = (parseInt(year) - 543).toString(); // Convert to Gregorian
+                }
+
+                // Ensure month and day are 2 digits
+                return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+            }
+
+            // Fallback for other valid date formats that new Date() can handle,
+            // then convert to YYYY-MM-DD
+            try {
+                const date = new Date(dateStr);
+                if (!isNaN(date.getTime())) { // Check if it's a valid date
+                    return date.toISOString().split('T')[0];
+                }
+            } catch (e) {
+                // Do nothing, return null below
+            }
+            return null; // Return null if unable to normalize
+        }
+
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchData(); // Initial data fetch
+
+            // --- NEW: Set up periodic refresh ---
+            setInterval(fetchData, REFRESH_INTERVAL);
+
+            // Add event listeners
+            document.getElementById('dateSelector').addEventListener('change', handleDateSelection);
+            document.getElementById('searchStaffIdBtn').addEventListener('click', searchStaffId);
+            document.getElementById('staffIdInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    searchStaffId();
+                }
+            });
+            document.getElementById('searchDateRangeBtn').addEventListener('click', searchDateRange);
+            document.getElementById('checkAdminCodeBtn').addEventListener('click', checkAdminCode);
+            document.getElementById('adminCodeInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    checkAdminCode();
+                }
+            });
+            
+            // Initial tab display
+            switchTab(1);
+        });
+
+        // Switch between tabs
+        function switchTab(tabNumber) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            // Show selected tab content and mark tab as active
+            document.getElementById(`tabContent${tabNumber}`).classList.add('active');
+            document.getElementById(`tab${tabNumber}`).classList.add('active');
+        }
+
+        // Fetch data from Google Sheets
+        async function fetchData() {
+            console.log("Fetching data from Google Sheet...");
+            try {
+                // Show loader for daily stats during fetch
+                document.getElementById('dailyStatsLoader').style.display = 'block';
+                document.getElementById('dailyStatsContent').classList.add('hidden');
+
+                const response = await fetch(`${API_URL}?sheetId=${SHEET_ID}&sheetName=${SHEET_NAME}`);
+                const data = await response.json();
+
+                if (data && data.length > 0) {
+                    allData = data;
+                    // Extract all dates
+                    extractAllDates();
+                    
+                    // --- IMPORTANT: After fetching new data, re-evaluate and update UI ---
+                    // If currentSelectedDate is set, re-update daily stats for that date
+                    if (currentSelectedDate) {
+                        updateDailyStats(currentSelectedDate);
+                    } else if (allDates.length > 0) {
+                        // If no date was selected, or it's the first fetch,
+                        // set date selector to the newest date and update
+                        const newestDate = allDates[0].date;
+                        document.getElementById('dateSelector').value = newestDate;
+                        updateDailyStats(newestDate);
+                        currentSelectedDate = newestDate; // Store the new default
+                    } else {
+                         // If no dates found, ensure no loader is stuck and content is hidden
+                        document.getElementById('dateSelector').value = '';
+                        updateDailyStats(''); // Clear stats if no dates
+                    }
+
+                    // Update overall statistics table
+                    populateDailyTable();
+                    
+                    // Hide loader and show content after data is processed
+                    document.getElementById('dailyStatsLoader').style.display = 'none';
+                    document.getElementById('dailyStatsContent').classList.remove('hidden');
+                    document.getElementById('selectedDateDisplay').textContent = currentSelectedDate ? formatDate(currentSelectedDate) : '-';
+
+                } else {
+                    console.warn("No data or empty data returned from Google Sheet.");
+                    alert('ไม่พบข้อมูลจาก Google Sheet หรือข้อมูลว่างเปล่า');
+                    document.getElementById('dailyStatsLoader').style.display = 'none';
+                    document.getElementById('dailyStatsContent').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาตรวจสอบ API URL และสิทธิ์การเข้าถึง Google Apps Script');
+                document.getElementById('dailyStatsLoader').style.display = 'none';
+                document.getElementById('dailyStatsContent').classList.add('hidden');
+            }
+        }
+
+        // Extract and normalize all dates from the data headers
+        function extractAllDates() {
+            allDates = [];
+            // Assuming the first row contains headers, and dates start from the 3rd column (index 2)
+            if (allData.length > 0 && allData[0].length > 2) {
+                for (let i = 2; i < allData[0].length; i++) {
+                    const sheetDateValue = allData[0][i];
+                    const normalizedDate = normalizeDate(sheetDateValue); // Use the new normalization function
+
+                    if (normalizedDate) {
+                        allDates.push({
+                            date: normalizedDate, // Store in YYYY-MM-DD format
+                            columnIndex: i,
+                            formattedDate: formatDate(normalizedDate) // For display purposes
+                        });
+                    } else {
+                        console.warn(`Could not normalize date: "${sheetDateValue}" at column index ${i}`);
+                    }
+                }
+            }
+
+            // Sort dates in descending order (newest first)
+            allDates.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        // Populate date range selectors (Modified for date pickers)
+        function populateDateRangeSelectors() {
+            const startDateSelector = document.getElementById('startDateSelector');
+            const endDateSelector = document.getElementById('endDateSelector');
+
+            // Set min/max attributes to limit selection if desired, based on allDates
+            if (allDates.length > 0) {
+                // Oldest date as min
+                startDateSelector.min = allDates[allDates.length - 1].date;
+                endDateSelector.min = allDates[allDates.length - 1].date;
+
+                // Newest date as max
+                startDateSelector.max = allDates[0].date;
+                endDateSelector.max = allDates[0].date;
+            } else {
+                startDateSelector.min = '';
+                endDateSelector.min = '';
+                startDateSelector.max = '';
+                endDateSelector.max = '';
+            }
+        }
+
+        // Handle date selection change for daily stats
+        function handleDateSelection() {
+            const selectedDate = document.getElementById('dateSelector').value; // YYYY-MM-DD format
+            currentSelectedDate = selectedDate; // Update the global variable
+
+            if (selectedDate) {
+                document.getElementById('dailyStatsLoader').style.display = 'block';
+                document.getElementById('dailyStatsContent').classList.add('hidden');
+                document.getElementById('adminContentArea').classList.add('hidden');
+                document.getElementById('adminCodeInput').value = '';
+
+                setTimeout(() => {
+                    updateDailyStats(selectedDate);
+                    document.getElementById('dailyStatsLoader').style.display = 'none';
+                    document.getElementById('dailyStatsContent').classList.remove('hidden');
+                    document.getElementById('selectedDateDisplay').textContent = formatDate(selectedDate);
+                }, 500);
+            } else {
+                document.getElementById('dailyStatsContent').classList.add('hidden');
+                document.getElementById('adminContentArea').classList.add('hidden'); // Also hide admin section
+            }
+        }
+
+        // Update daily statistics based on selected date
+        function updateDailyStats(selectedDate) {
+            // Find the column index for the selectedDate (which is already YYYY-MM-DD)
+            let dateColumnIndex = -1;
+            const targetDateNormalized = normalizeDate(selectedDate); // Ensure the selected date is also normalized for comparison
+
+            if (!targetDateNormalized) {
+                console.error("Selected date could not be normalized:", selectedDate);
+                // Clear UI if selected date is invalid
+                document.getElementById('presentCount').textContent = 0;
+                document.getElementById('lateCount').textContent = 0;
+                document.getElementById('personalLeaveCount').textContent = 0;
+                document.getElementById('sickLeaveCount').textContent = 0;
+                document.getElementById('absentCount').textContent = 0;
+                document.getElementById('officialCount').textContent = 0;
+                document.getElementById('totalCount').textContent = 0;
+                updateDailyChart({
+                    'มา': 0, 'สาย': 0, 'ลากิจ': 0,
+                    'ลาป่วย': 0, 'ขาด': 0, 'ไปราชการ': 0
+                });
+                return;
+            }
+            
+            // Find column index using the allDates array for efficiency
+            for (let i = 0; i < allDates.length; i++) {
+                if (allDates[i].date === targetDateNormalized) {
+                    dateColumnIndex = allDates[i].columnIndex;
+                    break;
+                }
+            }
+            
+            if (dateColumnIndex === -1) {
+                // If date column not found, reset counts and chart
+                console.warn(`Data for selected date "${selectedDate}" not found in sheet.`);
+                document.getElementById('presentCount').textContent = 0;
+                document.getElementById('lateCount').textContent = 0;
+                document.getElementById('personalLeaveCount').textContent = 0;
+                document.getElementById('sickLeaveCount').textContent = 0;
+                document.getElementById('absentCount').textContent = 0;
+                document.getElementById('officialCount').textContent = 0;
+                document.getElementById('totalCount').textContent = 0;
+                updateDailyChart({
+                    'มา': 0, 'สาย': 0, 'ลากิจ': 0,
+                    'ลาป่วย': 0, 'ขาด': 0, 'ไปราชการ': 0
+                });
+                return;
+            }
+
+            // Count statuses
+            const statusCounts = {
+                'มา': 0,
+                'สาย': 0,
+                'ลากิจ': 0,
+                'ลาป่วย': 0,
+                'ขาด': 0,
+                'ไปราชการ': 0
+            };
+            let totalCount = 0;
+
+            // Start from row 1 (skip header)
+            for (let i = 1; i < allData.length; i++) {
+                if (allData[i] && allData[i].length > dateColumnIndex && allData[i][dateColumnIndex]) { // Check if row and column data exist
+                    const status = allData[i][dateColumnIndex];
+                    if (statusCounts.hasOwnProperty(status)) {
+                        statusCounts[status]++;
+                    }
+                    totalCount++;
+                }
+            }
+
+            // Update the counts in the UI
+            document.getElementById('presentCount').textContent = statusCounts['มา'];
+            document.getElementById('lateCount').textContent = statusCounts['สาย'];
+            document.getElementById('personalLeaveCount').textContent = statusCounts['ลากิจ'];
+            document.getElementById('sickLeaveCount').textContent = statusCounts['ลาป่วย'];
+            document.getElementById('absentCount').textContent = statusCounts['ขาด'];
+            document.getElementById('officialCount').textContent = statusCounts['ไปราชการ'];
+            document.getElementById('totalCount').textContent = totalCount;
+            // Update the chart
+            updateDailyChart(statusCounts);
+        }
+
+        // Update the daily chart
+        function updateDailyChart(statusCounts) {
+            const ctx = document.getElementById('dailyChart').getContext('2d');
+            // Destroy previous chart if it exists
+            if (dailyChart) {
+                dailyChart.destroy();
+            }
+
+            // Create new chart
+            dailyChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['มา', 'สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ'],
+                    datasets: [{
+                        data: [
+                            statusCounts['มา'],
+                            statusCounts['สาย'],
+                            statusCounts['ลากิจ'],
+                            statusCounts['ลาป่วย'],
+                            statusCounts['ขาด'],
+                            statusCounts['ไปราชการ']
+                        ],
+                        backgroundColor: chartColors,
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        title: {
+                            display: true,
+                            text: 'สถิติการมาปฏิบัติงาน',
+                            font: {
+                                size: 16
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Check admin code for special access
+        function checkAdminCode() {
+            const inputCode = document.getElementById('adminCodeInput').value.trim();
+            const adminContentArea = document.getElementById('adminContentArea');
+
+            if (inputCode === ADMIN_CODE) {
+                if (currentSelectedDate) {
+                    showSpecialStatusStaff(currentSelectedDate);
+                    adminContentArea.classList.remove('hidden');
+                    adminContentArea.classList.add('fade-in');
+                } else {
+                    alert('กรุณาเลือกวันที่ก่อน');
+                }
+            } else {
+                adminContentArea.classList.add('hidden');
+                alert('รหัสผ่านไม่ถูกต้อง');
+            }
+        }
+
+        // Show staff with special status (not present)
+        function showSpecialStatusStaff(selectedDate) {
+            // Find the column index for the selectedDate (already YYYY-MM-DD)
+            let dateColumnIndex = -1;
+            const targetDateNormalized = normalizeDate(selectedDate);
+
+            if (!targetDateNormalized) {
+                console.error("Selected date could not be normalized for admin access:", selectedDate);
+                // Clear table
+                const tableBody = document.getElementById('specialStatusTableBody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-gray-500">
+                            ไม่พบข้อมูลบุคลากรที่มีสถานะพิเศษในวันที่เลือก
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            for (let i = 0; i < allDates.length; i++) {
+                if (allDates[i].date === targetDateNormalized) {
+                    dateColumnIndex = allDates[i].columnIndex;
+                    break;
+                }
+            }
+            
+            if (dateColumnIndex === -1) {
+                // If date column not found, clear table
+                console.warn(`Data for selected date "${selectedDate}" not found for admin access.`);
+                const tableBody = document.getElementById('specialStatusTableBody');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="3" class="text-center py-4 text-gray-500">
+                            ไม่พบข้อมูลบุคลากรที่มีสถานะพิเศษในวันที่เลือก
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const tableBody = document.getElementById('specialStatusTableBody');
+            tableBody.innerHTML = '';
+
+            // Special statuses to show (all except "มา")
+            const specialStatuses = ['สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ'];
+
+            // Start from row 1 (skip header)
+            for (let i = 1; i < allData.length; i++) {
+                 if (allData[i] && allData[i].length > dateColumnIndex && allData[i][dateColumnIndex] && specialStatuses.includes(allData[i][dateColumnIndex])) {
+                    const staffId = allData[i][0];
+                    const staffName = allData[i][1];
+                    const status = allData[i][dateColumnIndex];
+
+                    const row = document.createElement('tr');
+
+                    let statusClass = '';
+                    if (statusColors.hasOwnProperty(status)) {
+                        statusClass = statusColors[status];
+                    }
+
+                    row.innerHTML = `
+                        <td>${staffId}</td>
+                        <td>${staffName}</td>
+                        <td>
+                            <span class="status-badge ${statusClass}">
+                                ${status}
+                            </span>
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+            }
+
+            // If no staff with special status
+            if (tableBody.children.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="3" class="text-center py-4 text-gray-500">
+                        ไม่พบบุคลากรที่มีสถานะพิเศษในวันที่เลือก
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+
+        // Populate overall daily statistics table (Tab 2)
+        function populateDailyTable() {
+            document.getElementById('dailyTableLoader').style.display = 'block';
+            document.getElementById('dailyTableContent').classList.add('hidden');
+
+            setTimeout(() => {
+                const tableBody = document.getElementById('dailyTableBody');
+                tableBody.innerHTML = '';
+
+                // Process each date, sorted newest first
+                if (allDates.length > 0) {
+                    allDates.forEach(dateObj => {
+                        const { date, columnIndex } = dateObj; // date is already YYYY-MM-DD
+
+                        // Count statuses for this date
+                        const statusCounts = {
+                            'มา': 0,
+                            'สาย': 0,
+                            'ลากิจ': 0,
+                            'ลาป่วย': 0,
+                            'ขาด': 0,
+                            'ไปราชการ': 0
+                        };
+
+                        let totalCount = 0;
+
+                        // Start from row 1 (skip header)
+                        for (let i = 1; i < allData.length; i++) {
+                            if (allData[i] && allData[i].length > columnIndex && allData[i][columnIndex]) {
+                                const status = allData[i][columnIndex];
+                                if (statusCounts.hasOwnProperty(status)) {
+                                    statusCounts[status]++;
+                                }
+                                totalCount++;
+                            }
+                        }
+
+                        // Create table row
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${formatDate(date)}</td>
+                            <td>${statusCounts['มา']}</td>
+                            <td>${statusCounts['สาย']}</td>
+                            <td>${statusCounts['ลากิจ']}</td>
+                            <td>${statusCounts['ลาป่วย']}</td>
+                            <td>${statusCounts['ขาด']}</td>
+                            <td>${statusCounts['ไปราชการ']}</td>
+                            <td class="font-semibold">${totalCount}</td>
+                        `;
+
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                     const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="8" class="text-center py-4 text-gray-500">
+                            ไม่พบข้อมูลวันที่ในชีต
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+                document.getElementById('dailyTableLoader').style.display = 'none';
+                document.getElementById('dailyTableContent').classList.remove('hidden');
+            }, 500);
+        }
+
+
+        // Search for staff by ID
+        function searchStaffId() {
+            const staffId = document.getElementById('staffIdInput').value.trim();
+            if (!staffId) {
+                alert('กรุณาระบุ ID บุคลากร');
+                return;
+            }
+
+            document.getElementById('staffIdLoader').classList.remove('hidden');
+            document.getElementById('staffInfoContent').classList.add('hidden');
+            document.getElementById('staffStatsContent').classList.add('hidden');
+            document.getElementById('staffNotFound').classList.add('hidden');
+
+            setTimeout(() => {
+                // Find the staff in the data
+                currentStaffRowIndex = -1;
+
+                for (let i = 1; i < allData.length; i++) {
+                    if (allData[i] && allData[i].length > 0 && allData[i][0] && String(allData[i][0]).trim() === staffId) {
+                        currentStaffRowIndex = i;
+                        break;
+                    }
+                }
+
+                if (currentStaffRowIndex === -1) {
+                    // Staff not found
+                    document.getElementById('staffIdLoader').classList.add('hidden');
+                    document.getElementById('staffNotFound').classList.remove('hidden');
+                    return;
+                }
+
+                // Display staff information
+                document.getElementById('staffId').textContent = allData[currentStaffRowIndex][0];
+                document.getElementById('staffName').textContent = allData[currentStaffRowIndex][1];
+
+                // Populate date range selectors (set min/max)
+                populateDateRangeSelectors();
+
+                // Set default values for date pickers if desired (e.g., newest and oldest dates)
+                if (allDates.length > 0) {
+                    document.getElementById('startDateSelector').value = allDates[allDates.length - 1].date; // Oldest date
+                    document.getElementById('endDateSelector').value = allDates[0].date; // Newest date
+                } else {
+                    document.getElementById('startDateSelector').value = '';
+                    document.getElementById('endDateSelector').value = '';
+                }
+
+                document.getElementById('staffIdLoader').classList.add('hidden');
+                document.getElementById('staffInfoContent').classList.remove('hidden');
+            }, 500);
+        }
+
+        // Search for staff data within date range
+        function searchDateRange() {
+            const startDate = document.getElementById('startDateSelector').value; // YYYY-MM-DD
+            const endDate = document.getElementById('endDateSelector').value;     // YYYY-MM-DD
+            
+            if (!startDate || !endDate) {
+                alert('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุด');
+                return;
+            }
+
+            // Validate date range
+            const startObj = new Date(startDate + 'T00:00:00');
+            const endObj = new Date(endDate + 'T00:00:00');
+            if (startObj > endObj) {
+                alert('วันที่เริ่มต้นต้องไม่มากกว่าวันที่สิ้นสุด');
+                return;
+            }
+            
+            if (currentStaffRowIndex === -1) {
+                alert('กรุณาค้นหา ID บุคลากรก่อน');
+                return;
+            }
+            
+            document.getElementById('staffStatsLoader').classList.remove('hidden');
+            document.getElementById('staffStatsContent').classList.add('hidden');
+            
+            setTimeout(() => {
+                // Filter dates within range from the pre-extracted allDates
+                const dateIndicesInRange = allDates.filter(dateObj => {
+                    const currentDateObj = new Date(dateObj.date + 'T00:00:00');
+                    return currentDateObj >= startObj && currentDateObj <= endObj;
+                }).sort((a, b) => new Date(b.date) - new Date(a.date)); // Sort newest first
+
+                // Populate staff attendance table
+                const tableBody = document.getElementById('staffTableBody');
+                tableBody.innerHTML = '';
+                
+                // Status counts
+                const statusCounts = {
+                    'มา': 0,
+                    'สาย': 0,
+                    'ลากิจ': 0,
+                    'ลาป่วย': 0,
+                    'ขาด': 0,
+                    'ไปราชการ': 0
+                };
+                
+                // Process each date in range
+                if (dateIndicesInRange.length > 0) {
+                    dateIndicesInRange.forEach(dateObj => {
+                        const { date, columnIndex } = dateObj;
+                        // Ensure allData[currentStaffRowIndex] and allData[currentStaffRowIndex][columnIndex] exist
+                        const status = (allData[currentStaffRowIndex] && allData[currentStaffRowIndex].length > columnIndex && allData[currentStaffRowIndex][columnIndex]) ? allData[currentStaffRowIndex][columnIndex] : '-';
+                        
+                        // Update status counts
+                        if (statusCounts.hasOwnProperty(status)) {
+                            statusCounts[status]++;
+                        }
+
+                        // Create table row
+                        const row = document.createElement('tr');
+                        
+                        let statusClass = '';
+                        if (statusColors.hasOwnProperty(status)) {
+                            statusClass = statusColors[status];
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${formatDate(date)}</td>
+                            <td>
+                                <span class="status-badge ${statusClass}">
+                                    ${status}
+                                </span>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                } else {
+                     const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td colspan="2" class="text-center py-4 text-gray-500">
+                            ไม่พบข้อมูลในช่วงวันที่เลือกสำหรับบุคลากรคนนี้
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                }
+                
+                // Update status counts in UI
+                document.getElementById('staffPresentCount').textContent = statusCounts['มา'];
+                document.getElementById('staffLateCount').textContent = statusCounts['สาย'];
+                document.getElementById('staffPersonalLeaveCount').textContent = statusCounts['ลากิจ'];
+                document.getElementById('staffSickLeaveCount').textContent = statusCounts['ลาป่วย'];
+                document.getElementById('staffAbsentCount').textContent = statusCounts['ขาด'];
+                document.getElementById('staffOfficialCount').textContent = statusCounts['ไปราชการ'];
+
+                // Update date range display
+                document.getElementById('dateRangeDisplay').textContent = 
+                    `${formatDate(startDate)} ถึง ${formatDate(endDate)}`;
+                document.getElementById('staffStatsLoader').classList.add('hidden');
+                document.getElementById('staffStatsContent').classList.remove('hidden');
+            }, 500);
+        }
+
+        // Format date to Thai format
+        function formatDate(dateStr) {
+            try {
+                // Ensure dateStr is YYYY-MM-DD for consistent parsing
+                const normalizedDateStr = normalizeDate(dateStr);
+                if (!normalizedDateStr) return dateStr; // Fallback if normalization fails
+
+                // Add 'T00:00:00' to ensure date is parsed as UTC midnight
+                // This helps avoid timezone issues that might shift the date by a day.
+                const date = new Date(normalizedDateStr + 'T00:00:00');
+                if (isNaN(date.getTime())) { // Check if date is valid
+                    return dateStr;
+                }
+                return date.toLocaleDateString('th-TH', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (e) {
+                console.error("Error formatting date:", dateStr, e);
+                return dateStr;
+            }
+        }
+    </script>
+</body>
+</html>
