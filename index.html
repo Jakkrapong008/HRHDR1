@@ -288,6 +288,25 @@
                         📊 ตารางสถิติรายวัน
                     </h3>
                     
+                    <div class="mb-6 bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                        <h4 class="text-lg font-medium text-gray-800 mb-3">
+                            📅 เลือกช่วงวันที่ต้องการดูข้อมูล
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">วันที่เริ่มต้น</label>
+                                <input type="date" id="startDateSelector2" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                <input type="date" id="endDateSelector2" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-red-300">
+                            </div>
+                        </div>
+                        <button id="searchDailyTableDateRangeBtn" class="w-full md:w-auto bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-md transition-colors">
+                            ค้นหาข้อมูล
+                        </button>
+                    </div>
+
                     <div id="dailyTableLoader" class="loader"></div>
                     
                     <div id="dailyTableContent" class="hidden overflow-x-auto">
@@ -496,6 +515,8 @@
                     checkAdminCode();
                 }
             });
+            // New event listener for Tab 2 date range search
+            document.getElementById('searchDailyTableDateRangeBtn').addEventListener('click', handleDailyTableDateRangeSearch);
         });
         
         // Switch between tabs
@@ -530,8 +551,12 @@
                     // Set min/max for date pickers and set default values
                     setDatePickerMinMax();
 
-                    // Populate daily table (this still uses allDates)
-                    populateDailyTable();
+                    // Populate daily table with full range initially
+                    if (allDates.length > 0) {
+                        populateDailyTable(allDates[allDates.length - 1].date, allDates[0].date);
+                    } else {
+                        populateDailyTable(); // Call without dates if no data
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
@@ -583,6 +608,16 @@
                 // Set default range to the newest date
                 startDateSelector.value = newestDate;
                 endDateSelector.value = newestDate;
+
+                // Set min/max for Tab 2 date pickers
+                const startDateSelector2 = document.getElementById('startDateSelector2');
+                const endDateSelector2 = document.getElementById('endDateSelector2');
+                startDateSelector2.min = oldestDate;
+                startDateSelector2.max = newestDate;
+                endDateSelector2.min = oldestDate;
+                endDateSelector2.max = newestDate;
+                startDateSelector2.value = oldestDate; // Default to oldest for full range
+                endDateSelector2.value = newestDate; // Default to newest for full range
             }
             // Hide loader after setting up date pickers
             document.getElementById('dailyStatsLoader').style.display = 'none';
@@ -800,57 +835,104 @@
             }
         }
         
-        // Populate daily statistics table
-        function populateDailyTable() {
+        // Handle date range search for daily table tab
+        function handleDailyTableDateRangeSearch() {
+            const startDate = document.getElementById('startDateSelector2').value;
+            const endDate = document.getElementById('endDateSelector2').value;
+
+            if (!startDate || !endDate) {
+                displayMessageBox('กรุณาเลือกวันที่เริ่มต้นและวันที่สิ้นสุดสำหรับตารางสถิติรายวัน', 'warning');
+                return;
+            }
+
+            // Direct string comparison works for YYYY-MM-DD for chronological order
+            if (startDate > endDate) {
+                displayMessageBox('วันที่เริ่มต้นต้องไม่เกินวันที่สิ้นสุดสำหรับตารางสถิติรายวัน', 'error');
+                return;
+            }
+
+            document.getElementById('dailyTableLoader').style.display = 'block';
+            document.getElementById('dailyTableContent').classList.add('hidden');
+
+            setTimeout(() => {
+                populateDailyTable(startDate, endDate); // Call with filters
+                document.getElementById('dailyTableLoader').style.display = 'none';
+                document.getElementById('dailyTableContent').classList.remove('hidden');
+            }, 500);
+        }
+
+        // Populate daily statistics table (now accepts optional date range filters)
+        function populateDailyTable(startDate = null, endDate = null) {
             document.getElementById('dailyTableLoader').style.display = 'block';
             
             setTimeout(() => {
                 const tableBody = document.getElementById('dailyTableBody');
                 tableBody.innerHTML = '';
                 
-                // Process each date
-                allDates.forEach(dateObj => {
-                    const { date, columnIndex } = dateObj; // date is already normalized YYYY-MM-DD
-                    
-                    // Count statuses for this date
-                    const statusCounts = {
-                        'มา': 0,
-                        'สาย': 0,
-                        'ลากิจ': 0,
-                        'ลาป่วย': 0,
-                        'ขาด': 0,
-                        'ไปราชการ': 0
-                    };
-                    
-                    let totalCount = 0;
-                    
-                    // Start from row 1 (skip header)
-                    for (let i = 1; i < allData.length; i++) {
-                        if (allData[i][columnIndex]) {
-                            const status = allData[i][columnIndex];
-                            if (statusCounts.hasOwnProperty(status)) {
-                                statusCounts[status]++;
-                            }
-                            totalCount++;
-                        }
-                    }
-                    
-                    // Create table row
+                let datesToProcess = allDates;
+
+                // Filter dates if startDate and endDate are provided
+                if (startDate && endDate) {
+                    datesToProcess = allDates.filter(dateObj => {
+                        // Compare normalized date strings directly
+                        return dateObj.date >= startDate && dateObj.date <= endDate;
+                    });
+                }
+                
+                // If no dates in range after filtering
+                if (datesToProcess.length === 0) {
                     const row = document.createElement('tr');
-                    
                     row.innerHTML = `
-                        <td>${formatDate(date)}</td>
-                        <td>${statusCounts['มา']}</td>
-                        <td>${statusCounts['สาย']}</td>
-                        <td>${statusCounts['ลากิจ']}</td>
-                        <td>${statusCounts['ลาป่วย']}</td>
-                        <td>${statusCounts['ขาด']}</td>
-                        <td>${statusCounts['ไปราชการ']}</td>
-                        <td class="font-semibold">${totalCount}</td>
+                        <td colspan="8" class="text-center py-4 text-gray-500">
+                            ไม่พบข้อมูลในช่วงวันที่เลือก
+                        </td>
                     `;
-                    
                     tableBody.appendChild(row);
-                });
+                } else {
+                    // Process each date in the filtered range
+                    datesToProcess.forEach(dateObj => {
+                        const { date, columnIndex } = dateObj; // date is already normalized YYYY-MM-DD
+                        
+                        // Count statuses for this date
+                        const statusCounts = {
+                            'มา': 0,
+                            'สาย': 0,
+                            'ลากิจ': 0,
+                            'ลาป่วย': 0,
+                            'ขาด': 0,
+                            'ไปราชการ': 0
+                        };
+                        
+                        let totalCount = 0;
+                        
+                        // Start from row 1 (skip header)
+                        for (let i = 1; i < allData.length; i++) {
+                            if (allData[i][columnIndex]) {
+                                const status = allData[i][columnIndex];
+                                if (statusCounts.hasOwnProperty(status)) {
+                                    statusCounts[status]++;
+                                }
+                                totalCount++;
+                            }
+                        }
+                        
+                        // Create table row
+                        const row = document.createElement('tr');
+                        
+                        row.innerHTML = `
+                            <td>${formatDate(date)}</td>
+                            <td>${statusCounts['มา']}</td>
+                            <td>${statusCounts['สาย']}</td>
+                            <td>${statusCounts['ลากิจ']}</td>
+                            <td>${statusCounts['ลาป่วย']}</td>
+                            <td>${statusCounts['ขาด']}</td>
+                            <td>${statusCounts['ไปราชการ']}</td>
+                            <td class="font-semibold">${totalCount}</td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
+                }
                 
                 document.getElementById('dailyTableLoader').style.display = 'none';
                 document.getElementById('dailyTableContent').classList.remove('hidden');
