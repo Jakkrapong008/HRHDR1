@@ -266,7 +266,6 @@
                                         <table class="min-w-full">
                                             <thead>
                                                 <tr>
-                                                    <th>ID</th>
                                                     <th>ชื่อ-นามสกุล</th>
                                                     <th>สถานะ</th>
                                                 </tr>
@@ -798,7 +797,7 @@
             // Start from row 1 (skip header)
             for (let i = 1; i < allData.length; i++) {
                 if (allData[i][dateColumnIndex] && specialStatuses.includes(allData[i][dateColumnIndex])) {
-                    const staffId = allData[i][0];
+                    // const staffId = allData[i][0]; // ID is no longer displayed
                     const staffName = allData[i][1];
                     const status = allData[i][dateColumnIndex];
                     
@@ -810,7 +809,6 @@
                     }
                     
                     row.innerHTML = `
-                        <td>${staffId}</td>
                         <td>${staffName}</td>
                         <td>
                             <span class="status-badge ${statusClass}">
@@ -827,7 +825,7 @@
             if (tableBody.children.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="3" class="text-center py-4 text-gray-500">
+                    <td colspan="2" class="text-center py-4 text-gray-500">
                         ไม่พบบุคลากรที่มีสถานะพิเศษในวันที่เลือก
                     </td>
                 `;
