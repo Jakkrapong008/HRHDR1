@@ -234,6 +234,12 @@
                                             <span>ไปราชการ: </span>
                                             <span id="officialCount" class="font-semibold ml-1">0</span>
                                         </div>
+                                        <!-- New: Maternity Leave Count -->
+                                        <div class="flex items-center">
+                                            <span class="w-3 h-3 rounded-full bg-pink-500 mr-2"></span>
+                                            <span>ลาคลอด: </span>
+                                            <span id="maternityLeaveCount" class="font-semibold ml-1">0</span>
+                                        </div>
                                     </div>
                                     <div class="mt-4 pt-3 border-t border-red-200">
                                         <div class="flex items-center justify-between">
@@ -319,6 +325,8 @@
                                     <th>ลาป่วย</th>
                                     <th>ขาด</th>
                                     <th>ไปราชการ</th>
+                                    <!-- New: Maternity Leave column -->
+                                    <th>ลาคลอด</th>
                                     <th>รวม</th>
                                 </tr>
                             </thead>
@@ -332,7 +340,7 @@
             <div id="tabContent3" class="tab-content">
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h3 class="text-xl font-semibold text-red-600 mb-4">
-                        � ค้นหาสถิติรายบุคคล
+                        🔍 ค้นหาสถิติรายบุคคล
                     </h3>
                     
                     <div class="mb-6">
@@ -385,7 +393,50 @@
                     <div id="staffStatsLoader" class="loader hidden"></div>
                     
                     <div id="staffStatsContent" class="hidden">
-                        <h4 class="text-lg font-medium text-gray-800 mb-3">
+                        <!-- สรุปสถิติ moved here -->
+                        <div class="mt-6 bg-red-50 rounded-lg p-4">
+                            <h4 class="text-lg font-medium text-gray-800 mb-3">
+                                สรุปสถิติ
+                            </h4>
+                            <!-- New: Total days in range display -->
+                            <p id="totalDaysInRangeDisplay" class="text-sm text-gray-700 mb-4">
+                                จำนวนวันที่อยู่ในช่วงวันที่ท่านเลือก 0 วัน
+                            </p>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-green-600 font-medium">มา</div>
+                                    <div id="staffPresentCount" class="text-2xl font-bold">0</div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-yellow-600 font-medium">สาย</div>
+                                    <div id="staffLateCount" class="text-sm font-bold"></div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-blue-600 font-medium">ลากิจ</div>
+                                    <div id="staffPersonalLeaveCount" class="text-sm font-bold"></div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-purple-600 font-medium">ลาป่วย</div>
+                                    <div id="staffSickLeaveCount" class="text-sm font-bold"></div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-red-600 font-medium">ขาด</div>
+                                    <div id="staffAbsentCount" class="text-sm font-bold"></div>
+                                </div>
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-orange-600 font-medium">ไปราชการ</div>
+                                    <div id="staffOfficialCount" class="text-sm font-bold"></div>
+                                </div>
+                                <!-- New: Maternity Leave Summary -->
+                                <div class="bg-white p-3 rounded-md shadow-sm">
+                                    <div class="text-pink-600 font-medium">ลาคลอด</div>
+                                    <div id="staffMaternityLeaveCount" class="text-sm font-bold"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ประวัติการมาปฏิบัติงาน moved here -->
+                        <h4 class="text-lg font-medium text-gray-800 mt-6 mb-3">
                             ประวัติการมาปฏิบัติงาน
                         </h4>
                         <p class="text-sm text-gray-600 mb-3">
@@ -403,38 +454,6 @@
                                 <tbody id="staffTableBody">
                                     </tbody>
                             </table>
-                        </div>
-                        
-                        <div class="mt-6 bg-red-50 rounded-lg p-4">
-                            <h4 class="text-lg font-medium text-gray-800 mb-3">
-                                สรุปสถิติ
-                            </h4>
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-green-600 font-medium">มา</div>
-                                    <div id="staffPresentCount" class="text-2xl font-bold">0</div>
-                                </div>
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-yellow-600 font-medium">สาย</div>
-                                    <div id="staffLateCount" class="text-2xl font-bold">0</div>
-                                </div>
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-blue-600 font-medium">ลากิจ</div>
-                                    <div id="staffPersonalLeaveCount" class="text-2xl font-bold">0</div>
-                                </div>
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-purple-600 font-medium">ลาป่วย</div>
-                                    <div id="staffSickLeaveCount" class="text-2xl font-bold">0</div>
-                                </div>
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-red-600 font-medium">ขาด</div>
-                                    <div id="staffAbsentCount" class="text-2xl font-bold">0</div>
-                                </div>
-                                <div class="bg-white p-3 rounded-md shadow-sm">
-                                    <div class="text-orange-600 font-medium">ไปราชการ</div>
-                                    <div id="staffOfficialCount" class="text-2xl font-bold">0</div>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -471,7 +490,8 @@
             'ลากิจ': 'bg-blue-100 text-blue-800',
             'ลาป่วย': 'bg-purple-100 text-purple-800',
             'ขาด': 'bg-red-100 text-red-800',
-            'ไปราชการ': 'bg-orange-100 text-orange-800'
+            'ไปราชการ': 'bg-orange-100 text-orange-800',
+            'ลาคลอด': 'bg-pink-100 text-pink-800' // New status color
         };
         
         const chartColors = [
@@ -480,7 +500,8 @@
             'rgba(59, 130, 246, 0.8)',  // ลากิจ - blue
             'rgba(168, 85, 247, 0.8)',  // ลาป่วย - purple
             'rgba(239, 68, 68, 0.8)',   // ขาด - red
-            'rgba(249, 115, 22, 0.8)'   // ไปราชการ - orange
+            'rgba(249, 115, 22, 0.8)',   // ไปราชการ - orange
+            'rgba(236, 72, 153, 0.8)' // ลาคลอด - pink (example color)
         ];
 
         // Helper function to normalize date to YYYY-MM-DD string
@@ -668,6 +689,7 @@
                 document.getElementById('sickLeaveCount').textContent = 0;
                 document.getElementById('absentCount').textContent = 0;
                 document.getElementById('officialCount').textContent = 0;
+                document.getElementById('maternityLeaveCount').textContent = 0; // Clear for new status
                 document.getElementById('totalCount').textContent = 0;
                 if (dailyChart) {
                     dailyChart.destroy(); // Clear chart if no data
@@ -683,7 +705,8 @@
                 'ลากิจ': 0,
                 'ลาป่วย': 0,
                 'ขาด': 0,
-                'ไปราชการ': 0
+                'ไปราชการ': 0,
+                'ลาคลอด': 0 // New status
             };
             
             let totalCount = 0;
@@ -706,6 +729,7 @@
             document.getElementById('sickLeaveCount').textContent = statusCounts['ลาป่วย'];
             document.getElementById('absentCount').textContent = statusCounts['ขาด'];
             document.getElementById('officialCount').textContent = statusCounts['ไปราชการ'];
+            document.getElementById('maternityLeaveCount').textContent = statusCounts['ลาคลอด']; // Update for new status
             document.getElementById('totalCount').textContent = totalCount;
             
             // Update the chart
@@ -725,7 +749,7 @@
             dailyChart = new Chart(ctx, {
                 type: 'pie',
                 data: {
-                    labels: ['มา', 'สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ'],
+                    labels: ['มา', 'สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ', 'ลาคลอด'], // Add new label
                     datasets: [{
                         data: [
                             statusCounts['มา'],
@@ -733,7 +757,8 @@
                             statusCounts['ลากิจ'],
                             statusCounts['ลาป่วย'],
                             statusCounts['ขาด'],
-                            statusCounts['ไปราชการ']
+                            statusCounts['ไปราชการ'],
+                            statusCounts['ลาคลอด'] // Add new data
                         ],
                         backgroundColor: chartColors,
                         borderWidth: 1
@@ -795,7 +820,7 @@
             tableBody.innerHTML = '';
             
             // Special statuses to show (all except "มา")
-            const specialStatuses = ['สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ'];
+            const specialStatuses = ['สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ', 'ลาคลอด']; // Add new status
             
             // Start from row 1 (skip header)
             for (let i = 1; i < allData.length; i++) {
@@ -884,7 +909,7 @@
                 if (datesToProcess.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
-                        <td colspan="8" class="text-center py-4 text-gray-500">
+                        <td colspan="9" class="text-center py-4 text-gray-500">
                             ไม่พบข้อมูลในช่วงวันที่เลือก
                         </td>
                     `;
@@ -901,7 +926,8 @@
                             'ลากิจ': 0,
                             'ลาป่วย': 0,
                             'ขาด': 0,
-                            'ไปราชการ': 0
+                            'ไปราชการ': 0,
+                            'ลาคลอด': 0 // New status
                         };
                         
                         let totalCount = 0;
@@ -928,6 +954,7 @@
                             <td>${statusCounts['ลาป่วย']}</td>
                             <td>${statusCounts['ขาด']}</td>
                             <td>${statusCounts['ไปราชการ']}</td>
+                            <td>${statusCounts['ลาคลอด']}</td> <!-- New column for Maternity Leave -->
                             <td class="font-semibold">${totalCount}</td>
                         `;
                         
@@ -1016,7 +1043,7 @@
             
             setTimeout(() => {
                 // Find date indices within range
-                const dateIndicesInRange = [];
+                let dateIndicesInRange = [];
                 
                 for (let i = 2; i < allData[0].length; i++) {
                     const currentDateInSheet = normalizeDateString(allData[0][i]); // Normalize sheet date
@@ -1029,55 +1056,80 @@
                     }
                 }
                 
-                // Sort dates in descending order (newest first)
-                dateIndicesInRange.sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Sort dates in ascending order (chronological) for occurrence calculation
+                dateIndicesInRange.sort((a, b) => new Date(a.date) - new Date(b.date));
                 
                 // Populate staff attendance table
                 const tableBody = document.getElementById('staffTableBody');
                 tableBody.innerHTML = '';
                 
-                // Status counts
+                // Status counts (total days)
                 const statusCounts = {
                     'มา': 0,
                     'สาย': 0,
                     'ลากิจ': 0,
                     'ลาป่วย': 0,
                     'ขาด': 0,
-                    'ไปราชการ': 0
+                    'ไปราชการ': 0,
+                    'ลาคลอด': 0 // New status
+                };
+
+                // Occurrence counts (number of times)
+                const occurrenceCounts = {
+                    'มา': 0, // Though not explicitly requested for 'มา', keeping for consistency
+                    'สาย': 0,
+                    'ลากิจ': 0,
+                    'ลาป่วย': 0,
+                    'ขาด': 0,
+                    'ไปราชการ': 0,
+                    'ลาคลอด': 0 // New status
                 };
                 
-                // Process each date in range
-                dateIndicesInRange.forEach(dateObj => {
+                let previousStatus = null; // To track consecutive occurrences
+                let previousDateForConsecutiveCheck = null;
+
+                // Process each date in range for total days and occurrences
+                dateIndicesInRange.forEach((dateObj, index) => {
                     const { date, columnIndex } = dateObj;
                     const status = allData[currentStaffRowIndex][columnIndex] || '-';
                     
-                    // Update status counts
+                    // Update total status counts (Y value)
                     if (statusCounts.hasOwnProperty(status)) {
                         statusCounts[status]++;
                     }
-                    
-                    // Create table row
-                    const row = document.createElement('tr');
-                    
-                    let statusClass = '';
-                    if (statusColors.hasOwnProperty(status)) {
-                        statusClass = statusColors[status];
+
+                    // Calculate occurrences (X value)
+                    // Only for non-'มา' statuses as per requirement
+                    if (['สาย', 'ลากิจ', 'ลาป่วย', 'ขาด', 'ไปราชการ', 'ลาคลอด'].includes(status)) { // Add new status here
+                        if (index === 0) { // First entry in the filtered range
+                            occurrenceCounts[status]++;
+                        } else {
+                            const prevDate = new Date(previousDateForConsecutiveCheck);
+                            const currDate = new Date(date);
+                            const diffTime = Math.abs(currDate.getTime() - prevDate.getTime());
+                            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); // Calculate difference in days
+
+                            // If not consecutive (diffDays > 1) OR status changed, it's a new occurrence
+                            if (diffDays > 1 || status !== previousStatus) {
+                                occurrenceCounts[status]++;
+                            }
+                        }
+                    } else if (status === 'มา') {
+                        // For 'มา' status, if it's the first day or the previous status was not 'มา', count as a new occurrence
+                        if (index === 0 || previousStatus !== 'มา') {
+                            occurrenceCounts[status]++;
+                        }
                     }
-                    
-                    row.innerHTML = `
-                        <td>${formatDate(date)}</td>
-                        <td>
-                            <span class="status-badge ${statusClass}">
-                                ${status}
-                            </span>
-                        </td>
-                    `;
-                    
-                    tableBody.appendChild(row);
+
+                    previousStatus = status;
+                    previousDateForConsecutiveCheck = date; // Store the current date for the next iteration's consecutive check
                 });
                 
-                // If no dates in range
-                if (tableBody.children.length === 0) {
+                // Re-sort for display (newest first)
+                dateIndicesInRange.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+                // Populate staff attendance table (display part)
+                if (dateIndicesInRange.length === 0) {
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td colspan="2" class="text-center py-4 text-gray-500">
@@ -1085,16 +1137,43 @@
                         </td>
                     `;
                     tableBody.appendChild(row);
+                } else {
+                    dateIndicesInRange.forEach(dateObj => {
+                        const { date, columnIndex } = dateObj;
+                        const status = allData[currentStaffRowIndex][columnIndex] || '-';
+                        
+                        const row = document.createElement('tr');
+                        
+                        let statusClass = '';
+                        if (statusColors.hasOwnProperty(status)) {
+                            statusClass = statusColors[status];
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${formatDate(date)}</td>
+                            <td>
+                                <span class="status-badge ${statusClass}">
+                                    ${status}
+                                </span>
+                            </td>
+                        `;
+                        
+                        tableBody.appendChild(row);
+                    });
                 }
                 
                 // Update status counts in UI
-                document.getElementById('staffPresentCount').textContent = statusCounts['มา'];
-                document.getElementById('staffLateCount').textContent = statusCounts['สาย'];
-                document.getElementById('staffPersonalLeaveCount').textContent = statusCounts['ลากิจ'];
-                document.getElementById('staffSickLeaveCount').textContent = statusCounts['ลาป่วย'];
-                document.getElementById('staffAbsentCount').textContent = statusCounts['ขาด'];
-                document.getElementById('staffOfficialCount').textContent = statusCounts['ไปราชการ'];
+                document.getElementById('staffPresentCount').textContent = `${statusCounts['มา']} วัน`;
+                document.getElementById('staffLateCount').innerHTML = `จำนวน ${occurrenceCounts['สาย']} ครั้ง <br>รวมเป็น ${statusCounts['สาย']} วัน`;
+                document.getElementById('staffPersonalLeaveCount').innerHTML = `จำนวน ${occurrenceCounts['ลากิจ']} ครั้ง <br>รวมเป็น ${statusCounts['ลากิจ']} วัน`;
+                document.getElementById('staffSickLeaveCount').innerHTML = `จำนวน ${occurrenceCounts['ลาป่วย']} ครั้ง <br>รวมเป็น ${statusCounts['ลาป่วย']} วัน`;
+                document.getElementById('staffAbsentCount').innerHTML = `จำนวน ${occurrenceCounts['ขาด']} ครั้ง <br>รวมเป็น ${statusCounts['ขาด']} วัน`;
+                document.getElementById('staffOfficialCount').innerHTML = `จำนวน ${occurrenceCounts['ไปราชการ']} ครั้ง <br>รวมเป็น ${statusCounts['ไปราชการ']} วัน`;
+                document.getElementById('staffMaternityLeaveCount').innerHTML = `จำนวน ${occurrenceCounts['ลาคลอด']} ครั้ง <br>รวมเป็น ${statusCounts['ลาคลอด']} วัน`; // Update for new status
                 
+                // Update total days in range display
+                document.getElementById('totalDaysInRangeDisplay').textContent = `จำนวนวันที่อยู่ในช่วงวันที่ท่านเลือก ${dateIndicesInRange.length} วัน`;
+
                 // Update date range display
                 document.getElementById('dateRangeDisplay').textContent = 
                     `${formatDate(startDate)} ถึง ${formatDate(endDate)}`;
@@ -1162,4 +1241,3 @@
     </script>
 </body>
 </html>
-�
